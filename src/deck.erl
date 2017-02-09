@@ -1,7 +1,9 @@
 -module(deck).
--export([init/0, stop/1, draw/1, count/1]).
+-export([init/0, stop/1, draw/1, count/1, shuffle/1]).
 
 -record(card, {value, suite}).
+
+-define(NUM_DECKS, 8).
 
 init() ->
     spawn(fun() -> deck() end).
@@ -48,13 +50,13 @@ count(Pid) ->
     end.
 
 shuffle(Pid) ->
-    Pid ! {self(), count},
+    Pid ! {self(), shuffle},
 
     receive
-        X when is_number(X) ->
-            X;
+        ok ->
+            ok;
         _ ->
-            ct:pal("Received unexpected response in count()"),
+            ct:pal("Received unexpected response in shuffle()"),
             error
     after 100 ->
               timeout
@@ -62,9 +64,8 @@ shuffle(Pid) ->
 
 deck() ->
     ct:pal("I'm alive!"),
-    Deck= lists:flatten(lists:duplicate(8, generate_deck())),
 
-    loop(shuffle_deck(Deck)).
+    loop(generate_deck()).
 
 loop(Deck) ->
     receive
@@ -81,9 +82,8 @@ loop(Deck) ->
             From ! length(Deck),
             loop(Deck);
         {From, shuffle} ->
-            shuffle_deck(Deck),
             From ! ok,
-            loop(Deck);
+            loop(generate_deck());
         {From, die} ->
             From ! ok,
             ct:pal("Bye bye.. *wawing*"),
@@ -91,10 +91,13 @@ loop(Deck) ->
     end.
 
 generate_deck() ->
-    [ {X, Y} ||
-      X <- lists:seq(2, 14),
-      Y <- [club, heart, diamond, spade] ].
+    Deck = lists:flatten(
+             lists:duplicate(?NUM_DECKS, [{X, Y} ||
+                                          X <- lists:seq(2, 14),
+                                          Y <- [club, heart, diamond, spade]])),
+    shuffle_deck(Deck).
 
 shuffle_deck(Deck) ->
-    %% TBD
-    Deck.
+    Random = lists:sort(
+               [{rand:uniform()*100*100*100, Y} || Y <- Deck]),
+    [X || {_,X} <- Random].
