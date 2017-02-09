@@ -47,26 +47,43 @@ count(Pid) ->
               timeout
     end.
 
+shuffle(Pid) ->
+    Pid ! {self(), count},
+
+    receive
+        X when is_number(X) ->
+            X;
+        _ ->
+            ct:pal("Received unexpected response in count()"),
+            error
+    after 100 ->
+              timeout
+    end.
+
 deck() ->
     ct:pal("I'm alive!"),
-    Deck = generate_deck(),
+    Deck= lists:flatten(lists:duplicate(8, generate_deck())),
 
-    loop(Deck, []).
+    loop(shuffle_deck(Deck)).
 
-loop(Deck, Trash) ->
+loop(Deck) ->
     receive
         {From, draw} ->
             case length(Deck) of
                 0 ->
                     From ! empty,
-                    loop(Deck, Trash);
+                    loop(Deck);
                 _ ->
                     From ! hd(Deck),
-                    loop(tl(Deck), [hd(Deck) | Trash])
+                    loop(tl(Deck))
             end;
         {From, count} ->
             From ! length(Deck),
-            loop(Deck, Trash);
+            loop(Deck);
+        {From, shuffle} ->
+            shuffle_deck(Deck),
+            From ! ok,
+            loop(Deck);
         {From, die} ->
             From ! ok,
             ct:pal("Bye bye.. *wawing*"),
@@ -74,14 +91,10 @@ loop(Deck, Trash) ->
     end.
 
 generate_deck() ->
-    Clubs = generate_suite_cards(club),
-    Spades = generate_suite_cards(spade),
-    Hearts = generate_suite_cards(heart),
-    Diamonds = generate_suite_cards(diamond),
+    [ {X, Y} ||
+      X <- lists:seq(2, 14),
+      Y <- [club, heart, diamond, spade] ].
 
-    lists:merge([Clubs, Spades, Hearts, Diamonds]).
-
-generate_suite_cards(Suite) ->
-    Numbers = lists:seq(2,14),
-    Suites = lists:duplicate(13, Suite),
-    lists:zip(Numbers, Suites).
+shuffle_deck(Deck) ->
+    %% TBD
+    Deck.
