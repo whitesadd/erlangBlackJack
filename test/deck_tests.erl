@@ -1,5 +1,5 @@
 
--module(deck_test).
+-module(deck_tests).
 
 -include_lib("eunit/include/eunit.hrl").
 
