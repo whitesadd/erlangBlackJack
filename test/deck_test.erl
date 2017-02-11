@@ -3,7 +3,7 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
--define(NO_OF_CARDS, (52 * 8)).
+-define(NO_OF_CARDS, (52 * 8 + 1)).
 
 init_stop_test_() ->
     ?_assert(ok =:= deck:stop(deck:init())).
