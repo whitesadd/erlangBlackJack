@@ -1,10 +1,6 @@
-%%
-%%
-%%
 
 {['src/deck',
-  'src/blackjack',
-  'test/deck_tests'
+  'src/blackjack'
  ],
  [debug_info, {outdir, "./ebin"}
  ]
