@@ -5,9 +5,17 @@ deps
 *.beam
 *.plt
 erl_crash.dump
+ebin
 rel/example_project
 .concrete/DEV_MODE
 .rebar
 
 # Vim
 *.swp
+
+#Erlide
+.project
+.settings
+
+#Common Test Logs
+ctlogs

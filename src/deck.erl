@@ -17,7 +17,7 @@ draw(Pid) ->
         empty ->
             empty;
         _ ->
-            ct:pal("Received unexpected response in draw()"),
+            io:format("Received unexpected response in draw()~n"),
             error
     after 100 ->
               timeout
@@ -30,7 +30,7 @@ stop(Pid) ->
         ok ->
             ok;
         _ ->
-            ct:pal("Received unexpected response in stop()"),
+            io:format("Received unexpected response in stop()~n"),
             error
     after 100 ->
               timeout
@@ -43,7 +43,7 @@ count(Pid) ->
         X when is_number(X) ->
             X;
         _ ->
-            ct:pal("Received unexpected response in count()"),
+            io:format("Received unexpected response in count()~n"),
             error
     after 100 ->
               timeout
@@ -56,14 +56,14 @@ shuffle(Pid) ->
         ok ->
             ok;
         _ ->
-            ct:pal("Received unexpected response in shuffle()"),
+            io:format("Received unexpected response in shuffle()~n"),
             error
     after 100 ->
               timeout
     end.
 
 deck() ->
-    ct:pal("I'm alive!"),
+    io:format("I'm alive!~n"),
 
     loop(generate_deck()).
 
@@ -86,7 +86,7 @@ loop(Deck) ->
             loop(generate_deck());
         {From, die} ->
             From ! ok,
-            ct:pal("Bye bye.. *wawing*"),
+            io:format("Bye bye.. *wawing*~n"),
             ok
     end.
 
