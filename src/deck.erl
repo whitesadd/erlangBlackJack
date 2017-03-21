@@ -1,7 +1,14 @@
+%%%-------------------------------------------------------------------
+%%% File    : player_SUITE.erl
+%%% Author  : Civing
+%%% Description : Deck representation in Black Jack
+%%%
+%%% Created : 2017-02-01
+%%%-------------------------------------------------------------------
 -module(deck).
 -export([init/0, stop/1, draw/1, count/1, shuffle/1]).
 
--record(card, {value, suite}).
+-include("blackjack.hrl").
 
 -define(NUM_DECKS, 8).
 
