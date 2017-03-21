@@ -13,9 +13,9 @@ rel/example_project
 # Vim
 *.swp
 
-#Erlide
+# Erlide
 .project
 .settings
 
-#Common Test Logs
-ctlogs
+# Common Test Logs
+var/*
