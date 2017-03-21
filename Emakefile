@@ -1,7 +1,2 @@
-
-{['src/deck',
-  'src/blackjack'
- ],
- [debug_info, {outdir, "./ebin"}
- ]
-}.
+{'src/*', [debug_info, {i, "include"}, {outdir, "ebin/"}]}.
+{'test/*', [debug_info, {i, "include"}, {outdir, "ebin/"}]}.
