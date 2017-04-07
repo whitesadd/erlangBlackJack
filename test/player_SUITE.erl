@@ -101,7 +101,9 @@ all() ->
     [tc001_init_stop,
      tc002_deal_card,
      tc003_count_cards,
-     tc004_reset].
+     tc004_reset,
+     tc005_action
+    ].
 
 tc001_init_stop(_Config) ->
     ok = player:stop(player:init()).
@@ -128,4 +130,16 @@ tc004_reset(_Config) ->
     ok = player:deal_card(Pid, #card{value=2, suite=clubs}),
     ok = player:deal_card(Pid, #card{value=9, suite=clubs}),
     {ok, 11} = player:count_hand(Pid).
+
+tc005_action(_Config) ->
+    Pid = player:init(),
+    ok = player:deal_card(Pid, #card{value=10, suite=spade}),
+    ok = player:deal_card(Pid, #card{value=10, suite=clubs}),
+    {ok, draw} = player:action(Pid),
+    ok = player:deal_card(Pid, #card{value=10, suite=clubs}),
+    {ok, draw} = player:action(Pid),
+    ok = player:deal_card(Pid, #card{value=10, suite=clubs}),
+    {ok, draw} = player:action(Pid),
+    ok = player:deal_card(Pid, #card{value=10, suite=clubs}),
+    {ok, stop} = player:action(Pid).
 

@@ -6,7 +6,7 @@
 %%% Created : 2017-03-21
 %%%-------------------------------------------------------------------
 -module(player).
--export([init/0, stop/1, deal_card/2, count_hand/1, reset/1]).
+-export([init/0, stop/1, deal_card/2, count_hand/1, reset/1, action/1]).
 
 -include("blackjack.hrl").
 
@@ -50,6 +50,9 @@ count_hand(Pid) ->
 reset(Pid) ->
     send({Pid, reset}).
 
+action(Pid) ->
+    send({Pid, action}).
+
 player() ->
     io:format("Player alive ~w~n", [self()]),
 
@@ -69,6 +72,9 @@ loop(Cards) ->
         {From, die, _} ->
             io:format("Player ~w dying~n", [self()]),
             From ! {ok, none};
+        {From, action, _} ->
+            handle_action(From, Cards),
+            loop(Cards);
         Msg ->
             io:format("Unexpected message ~w~n", [Msg]),
             element(1, Msg) ! error
@@ -79,3 +85,8 @@ count([]) ->
 count([Card | Cards]) ->
     Card#card.value + count(Cards).
 
+handle_action(From, Cards) when length(Cards) > 4 ->
+    From ! {ok, stop};
+handle_action(From, Cards) ->
+    io:format("Length of Cards ~w~n", [length(Cards)]),
+    From ! {ok, draw}.
