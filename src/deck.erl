@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%% File    : player_SUITE.erl
+%%% File    : deck.erl
 %%% Author  : Civing
 %%% Description : Deck representation in Black Jack
 %%%
