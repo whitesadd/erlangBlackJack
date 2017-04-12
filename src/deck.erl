@@ -15,59 +15,41 @@
 init() ->
     spawn(fun() -> deck() end).
 
-draw(Pid) ->
-    Pid ! {self(), draw},
+send(Pid, Command) ->
+    send(Pid, Command, none).
+send(Pid, Command, Args) ->
+    io:format("Sending ~w to ~w~n", [Command, Pid]),
+    Pid ! {self(), Command, Args},
 
     receive
-        {Value, Suite} ->
-            #card{value=Value, suite=Suite};
-        empty ->
-            empty;
-        _ ->
-            io:format("Received unexpected response in draw()~n"),
+        {ok, Result} ->
+            case Result of
+                none ->
+                    ok;
+                _ ->
+                    Result
+            end;
+        error ->
+            error;
+        Msg ->
+            io:format("Received unexpected response ~w~n", [Msg]),
             error
-    after 100 ->
-              timeout
+    after
+        100 ->
+            timeout
     end.
+
+draw(Pid) ->
+    send(Pid, draw).
 
 stop(Pid) ->
-    Pid ! {self(), die},
-
-    receive
-        ok ->
-            ok;
-        _ ->
-            io:format("Received unexpected response in stop()~n"),
-            error
-    after 100 ->
-              timeout
-    end.
+    send(Pid, die).
 
 count(Pid) ->
-    Pid ! {self(), count},
-
-    receive
-        X when is_number(X) ->
-            X;
-        _ ->
-            io:format("Received unexpected response in count()~n"),
-            error
-    after 100 ->
-              timeout
-    end.
+    send(Pid, count).
 
 shuffle(Pid) ->
-    Pid ! {self(), shuffle},
-
-    receive
-        ok ->
-            ok;
-        _ ->
-            io:format("Received unexpected response in shuffle()~n"),
-            error
-    after 100 ->
-              timeout
-    end.
+    send(Pid, shuffle).
 
 deck() ->
     io:format("I'm alive!~n"),
@@ -76,25 +58,28 @@ deck() ->
 
 loop(Deck) ->
     receive
-        {From, draw} ->
+        {From, draw, _} ->
             case length(Deck) of
                 0 ->
-                    From ! empty,
+                    From ! {ok, empty},
                     loop(Deck);
                 _ ->
-                    From ! hd(Deck),
+                    From ! {ok, hd(Deck)},
                     loop(tl(Deck))
             end;
-        {From, count} ->
-            From ! length(Deck),
+        {From, count, _} ->
+            From ! {ok, length(Deck)},
             loop(Deck);
-        {From, shuffle} ->
+        {From, shuffle, _} ->
             From ! ok,
             loop(generate_deck());
-        {From, die} ->
-            From ! ok,
+        {From, die, _} ->
+            From ! {ok, none},
             io:format("Bye bye.. *wawing*~n"),
-            ok
+            ok;
+        Msg ->
+            io:format("Unexpected message ~w~n", [Msg]),
+            element(1, Msg) ! error
     end.
 
 generate_deck() ->

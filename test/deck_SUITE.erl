@@ -122,8 +122,7 @@ tc001_init_stop(_Config) ->
     ok = deck:stop(deck:init()).
 
 tc002_count(_Config) ->
-    ?NO_OF_CARDS = deck:count(deck:init()),
-    ok.
+    ?NO_OF_CARDS = deck:count(deck:init()).
 
 tc003_draw(_Config) ->
     Pid = deck:init(),
