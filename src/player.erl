@@ -1,7 +1,7 @@
 %%%-------------------------------------------------------------------
 %%% File    : player.erl
 %%% Author  : Civing
-%%% Description : Player representation of in Black Jack
+%%% Description : Player representation in Black Jack
 %%%
 %%% Created : 2017-03-21
 %%%-------------------------------------------------------------------
