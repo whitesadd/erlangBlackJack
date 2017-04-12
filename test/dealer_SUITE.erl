@@ -98,8 +98,27 @@ groups() ->
 %% Reason = term()
 %%--------------------------------------------------------------------
 all() ->
-    [tc001_init_stop
+    [tc001_init_stop,
+     tc002_new_game
     ].
 
 tc001_init_stop(_Config) ->
     ok = dealer:stop(dealer:init()).
+
+tc002_new_game(_Config) ->
+    Pid = dealer:init(),
+    Deck = deck:init(),
+    ok = dealer:new_game(Pid, self(), []),
+    ok = expect_draw(1, heart).
+
+expect_draw(Value, Suite) ->
+    receive
+        {Pid, draw} ->
+          Pid ! {Value, Suite},
+          ok;
+        _ ->
+            fail
+    after
+        100 ->
+            timeout
+    end.
