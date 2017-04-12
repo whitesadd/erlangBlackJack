@@ -23,7 +23,7 @@
 
 %% Specific modules to include in cover.
 %% Mods = [atom()]
-{incl_mods, [deck, blackjack, player]}.
+{incl_mods, [deck, blackjack, player, dealer]}.
 
 %% Directories to exclude in cover.
 %% {excl_dirs, Dirs}.
