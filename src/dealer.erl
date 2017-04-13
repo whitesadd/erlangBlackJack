@@ -55,10 +55,16 @@ loop(State) ->
             io:format("Dealer ~w dying~n", [self()]),
             From ! {ok, none};
         {From, new_game, [Deck, Players]} ->
-            io:format("Starting a new game~n"),
+            io:format("Starting new game with deck ~w and Players ~w~n",
+                      [Deck, Players]),
             From ! {ok, none},
-            deck:draw(Deck),
-            loop([new_game, [Deck, Players]]);
+            player:deal_card(element(1, Players),
+                             deck:draw(Deck)),
+            Hand = [deck:draw(Deck)],
+            player:deal_card(element(1, Players),
+                             deck:draw(Deck)),
+
+            loop([new_game, [Deck, Players, Hand]]);
         Msg ->
             io:format("Unexpected message ~w~n", [Msg]),
             element(1, Msg) ! error

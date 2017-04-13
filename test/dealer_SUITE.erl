@@ -107,17 +107,34 @@ tc001_init_stop(_Config) ->
 
 tc002_new_game(_Config) ->
     Pid = dealer:init(),
-    Deck = deck:init(),
-    ok = dealer:new_game(Pid, self(), []),
-    ok = expect_draw(1, heart).
+    ok = dealer:new_game(Pid, self(), {self()}),
+    ok = expect_draw(1, heart),
+    expect_dealt_card(),
+    ok = expect_draw(2, heart),
+    ok = expect_draw(3, heart),
+    expect_dealt_card().
 
 expect_draw(Value, Suite) ->
     receive
-        {Pid, draw} ->
-          Pid ! {Value, Suite},
-          ok;
-        _ ->
+        {From, draw, none} ->
+            From ! {Value, Suite},
+            ok;
+        Msg ->
+            io:format("Received unexpected response ~w~n", [Msg]),
             fail
+    after
+        100 ->
+            timeout
+    end.
+
+expect_dealt_card() ->
+    receive
+        {From, deal_card, _Card} ->
+            From ! {ok, none},
+            ok;
+        Msg ->
+            io:format("Received unexpected response ~w~n", [Msg]),
+            error
     after
         100 ->
             timeout
