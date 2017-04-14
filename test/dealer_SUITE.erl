@@ -107,7 +107,7 @@ tc001_init_stop(_Config) ->
 
 tc002_new_game(_Config) ->
     Pid = dealer:init(),
-    ok = dealer:new_game(Pid, self(), {self()}),
+    ok = dealer:new_game(Pid, self(), [self()]),
     ok = expect_draw(1, heart),
     expect_dealt_card(),
     ok = expect_draw(2, heart),

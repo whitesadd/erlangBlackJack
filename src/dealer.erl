@@ -8,6 +8,8 @@
 -module(dealer).
 -export([init/0, stop/1, new_game/3]).
 
+-record(state, {deck = [], hand = [], players = []}).
+
 -include("blackjack.hrl").
 
 init() ->
@@ -47,7 +49,7 @@ new_game(Pid, Deck, Players) ->
 dealer() ->
     io:format("Dealer alive ~w~n", [self()]),
 
-    loop([]).
+    loop(#state{}).
 
 loop(State) ->
     receive
@@ -58,13 +60,11 @@ loop(State) ->
             io:format("Starting new game with deck ~w and Players ~w~n",
                       [Deck, Players]),
             From ! {ok, none},
-            player:deal_card(element(1, Players),
-                             deck:draw(Deck)),
+            lists:foreach(fun(P) -> player:deal_card(P, deck:draw(Deck)) end, Players),
             Hand = [deck:draw(Deck)],
-            player:deal_card(element(1, Players),
-                             deck:draw(Deck)),
+            lists:foreach(fun(P) -> player:deal_card(P, deck:draw(Deck)) end, Players),
 
-            loop([new_game, [Deck, Players, Hand]]);
+            loop(#state{deck = Deck, players = Players, hand = Hand});
         Msg ->
             io:format("Unexpected message ~w~n", [Msg]),
             element(1, Msg) ! error
