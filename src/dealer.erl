@@ -64,8 +64,26 @@ loop(State) ->
             Hand = [deck:draw(Deck)],
             lists:foreach(fun(P) -> player:deal_card(P, deck:draw(Deck)) end, Players),
 
-            loop(#state{deck = Deck, players = Players, hand = Hand});
+            io:format("Ask players ~w for actions~n", [Players]),
+            ask_for_action(Players, Deck),
+
+            FinalHand = [deck:draw(Deck) | Hand],
+
+            loop(#state{deck = Deck, players = Players, hand = FinalHand});
         Msg ->
             io:format("Unexpected message ~w~n", [Msg]),
             element(1, Msg) ! error
+    end.
+
+ask_for_action([], Deck) ->
+    ok;
+ask_for_action([Player | Players], Deck) ->
+    {ok, Action} = player:action(Player),
+    io:format("Player ~w action ~w~n", [Player, Action]),
+    case Action of
+        draw ->
+            player:deal_card(Player, deck:draw(Deck)),
+            ask_for_action([Player | Players], Deck);
+        stop ->
+            ask_for_action(Players, Deck)
     end.

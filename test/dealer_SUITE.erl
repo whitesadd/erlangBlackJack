@@ -99,7 +99,8 @@ groups() ->
 %%--------------------------------------------------------------------
 all() ->
     [tc001_init_stop,
-     tc002_new_game
+     tc002_new_game,
+     tc003_two_players
     ].
 
 tc001_init_stop(_Config) ->
@@ -109,15 +110,74 @@ tc002_new_game(_Config) ->
     Pid = dealer:init(),
     ok = dealer:new_game(Pid, self(), [self()]),
     ok = expect_draw(1, heart),
-    expect_dealt_card(),
+    ok = expect_dealt_card(),
     ok = expect_draw(2, heart),
     ok = expect_draw(3, heart),
-    expect_dealt_card().
+    ok = expect_dealt_card(),
+
+    %% Standard cards given, expect actions
+    ok = expect_action(draw),
+    ok = expect_draw(4, heart),
+    ok = expect_dealt_card(),
+    ok = expect_action(stop),
+
+    %% Dealer last card
+    ok = expect_draw(13, cubs),
+
+    %% No more actions
+    ok = expect_nothing().
+
+tc003_two_players(_Config) ->
+    Pid = dealer:init(),
+    ok = dealer:new_game(Pid, self(), [self(), self()]),
+
+    %% Player one, first card
+    ok = expect_draw(1, heart),
+    ok = expect_dealt_card(),
+
+    %% Player two, first card
+    ok = expect_draw(1, heart),
+    ok = expect_dealt_card(),
+
+    %% Dealer, first card
+    ok = expect_draw(2, heart),
+
+    %% Player one, second card
+    ok = expect_draw(3, heart),
+    ok = expect_dealt_card(),
+
+    %% Player two, second card
+    ok = expect_draw(3, heart),
+    ok = expect_dealt_card(),
+
+    %% Player one actions
+    ok = expect_action(draw),
+    ok = expect_draw(4, heart),
+    ok = expect_dealt_card(),
+    ok = expect_action(stop),
+
+    %% Player two actions
+    ok = expect_action(draw),
+    ok = expect_draw(6, heart),
+    ok = expect_dealt_card(),
+    ok = expect_action(draw),
+    ok = expect_draw(7, heart),
+    ok = expect_dealt_card(),
+    ok = expect_action(draw),
+    ok = expect_draw(8, heart),
+    ok = expect_dealt_card(),
+    ok = expect_action(stop),
+
+    %% Dealer last card
+    ok = expect_draw(13, cubs),
+
+    %% No more actions
+    ok = expect_nothing().
 
 expect_draw(Value, Suite) ->
     receive
         {From, draw, none} ->
-            From ! {Value, Suite},
+            From ! {ok, #card{value=Value, suite=Suite}},
             ok;
         Msg ->
             io:format("Received unexpected response ~w~n", [Msg]),
@@ -139,3 +199,27 @@ expect_dealt_card() ->
         100 ->
             timeout
     end.
+
+expect_action(ActionToTake) ->
+    receive
+        {From, action, none} ->
+            From ! {ok, ActionToTake},
+            ok;
+        Msg ->
+            io:format("Received unexpected response ~w~n", [Msg]),
+            error
+    after
+        100 ->
+            timeout
+    end.
+
+expect_nothing() ->
+    receive
+        Msg ->
+            io:format("Received unexpected message ~w~n", [Msg]),
+            error
+    after
+        100 ->
+            ok
+    end.
+

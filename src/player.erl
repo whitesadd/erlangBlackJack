@@ -17,6 +17,7 @@ init() ->
 send({Pid, Command}) ->
     send({Pid, Command, none});
 send({Pid, Command, Args}) ->
+    io:format("Sending ~w to ~w~n", [Command, Pid]),
     Pid ! {self(), Command, Args},
 
     receive
