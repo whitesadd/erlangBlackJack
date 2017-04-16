@@ -10,4 +10,4 @@ else
 fi
 
 erl -make
-ct_run -noshell -pa $EBIN -include ./include -dir ./test -logdir ./var/logs -cover ./cover.spec
+ct_run -noshell -warnings_as_errors -pa $EBIN -include ./include -dir ./test -logdir ./var/logs -cover ./cover.spec

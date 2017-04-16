@@ -51,7 +51,7 @@ dealer() ->
 
     loop(#state{}).
 
-loop(State) ->
+loop(_State) ->
     receive
         {From, die, _} ->
             io:format("Dealer ~w dying~n", [self()]),
@@ -75,7 +75,7 @@ loop(State) ->
             element(1, Msg) ! error
     end.
 
-ask_for_action([], Deck) ->
+ask_for_action([], _Deck) ->
     ok;
 ask_for_action([Player | Players], Deck) ->
     {ok, Action} = player:action(Player),
