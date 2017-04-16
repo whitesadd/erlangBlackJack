@@ -67,7 +67,7 @@ loop(_State) ->
             io:format("Ask players ~w for actions~n", [Players]),
             ask_for_action(Players, Deck),
 
-            FinalHand = [deck:draw(Deck) | Hand],
+            FinalHand = draw_cards(Deck, Hand),
 
             loop(#state{deck = Deck, players = Players, hand = FinalHand});
         Msg ->
@@ -87,3 +87,28 @@ ask_for_action([Player | Players], Deck) ->
         stop ->
             ask_for_action(Players, Deck)
     end.
+
+draw_cards(Deck, Cards) ->
+    draw_cards(Deck, Cards, sum_cards(Cards)).
+draw_cards(_Deck, Cards, Sum) when Sum >= 17 ->
+    Cards;
+draw_cards(Deck, Cards, _Sum) ->
+    NewHand = [deck:draw(Deck) | Cards],
+    draw_cards(Deck, NewHand, sum_cards(NewHand)).
+
+sum_cards(Cards) ->
+    sum_cards(Cards, 0, 0).
+sum_cards(Cards, Sum, Aces) when Sum > 21, Aces > 0 ->
+    %% Reduce one ace to value 1
+    sum_cards(Cards, Sum - 10, Aces - 1);
+sum_cards([Card | Cards], Sum, Aces) when Card#card.value > 10 ->
+    %% Reduce court card to value 10
+    sum_cards(Cards, Sum + 10, Aces);
+sum_cards([Card | Cards], Sum, Aces) when Card#card.value =:= 1 ->
+    %% Ace, add 11 to sum and increment aces by one
+    sum_cards(Cards, Sum + 11, Aces + 1);
+sum_cards([Card | Cards], Sum, Aces) ->
+    sum_cards(Cards, Sum + Card#card.value, Aces);
+sum_cards([], Sum, _Aces) ->
+    Sum.
+

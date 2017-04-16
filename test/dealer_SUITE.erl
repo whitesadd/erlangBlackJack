@@ -100,7 +100,9 @@ groups() ->
 all() ->
     [tc001_init_stop,
      tc002_new_game,
-     tc003_two_players
+     tc003_two_players,
+     tc004_aces,
+     tc005_court_cards
     ].
 
 tc001_init_stop(_Config) ->
@@ -122,7 +124,8 @@ tc002_new_game(_Config) ->
     ok = expect_action(stop),
 
     %% Dealer last card
-    ok = expect_draw(13, cubs),
+    ok = expect_draw(13, clubs),
+    ok = expect_draw(10, clubs),
 
     %% No more actions
     ok = expect_nothing().
@@ -169,9 +172,53 @@ tc003_two_players(_Config) ->
     ok = expect_action(stop),
 
     %% Dealer last card
-    ok = expect_draw(13, cubs),
+    ok = expect_draw(13, clubs),
+    ok = expect_draw(1, clubs),
+    ok = expect_draw(10, clubs),
 
     %% No more actions
+    ok = expect_nothing().
+
+tc004_aces(_Config) ->
+    Pid = dealer:init(),
+    ok = dealer:new_game(Pid, self(), [self()]),
+    ok = expect_draw(1, heart),
+    ok = expect_dealt_card(),
+    ok = expect_draw(1, heart),
+    ok = expect_draw(3, heart),
+    ok = expect_dealt_card(),
+
+    % Don't care about player
+    ok = expect_action(stop),
+
+    %% Dealer last card, previous sum = 11
+    ok = expect_draw(1, clubs),
+    ok = expect_draw(1, clubs),
+    ok = expect_draw(1, clubs),
+    ok = expect_draw(1, clubs),
+
+    %% Dealer shoud know have 14
+    ok = expect_draw(3, heart),
+
+    %% No more actions (3 + 14 = 17)
+    ok = expect_nothing().
+
+tc005_court_cards(_Config) ->
+    Pid = dealer:init(),
+    ok = dealer:new_game(Pid, self(), [self()]),
+    ok = expect_draw(7, heart),
+    ok = expect_dealt_card(),
+    ok = expect_draw(1, heart),
+    ok = expect_draw(3, heart),
+    ok = expect_dealt_card(),
+
+    % Don't care about player
+    ok = expect_action(stop),
+
+    %% Dealer last card, previous sum = 7
+    ok = expect_draw(11, clubs),
+
+    %% No more actions (7 + 10 = 17)
     ok = expect_nothing().
 
 expect_draw(Value, Suite) ->
