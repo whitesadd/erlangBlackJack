@@ -6,74 +6,69 @@
 %%% Created : 2017-04-12
 %%%-------------------------------------------------------------------
 -module(dealer).
+-behavior(gen_server).
 -export([init/0, stop/1, new_game/3]).
+-export([init/1, handle_call/3, handle_cast/2, terminate/2,
+         code_change/3, handle_info/2]).
 
 -record(state, {deck = [], hand = [], players = []}).
 
 -include("blackjack.hrl").
 
+%% Dealer API
+
 init() ->
-    spawn(fun() -> dealer() end).
-
-send({Pid, Command}) ->
-    send({Pid, Command, none});
-
-send({Pid, Command, Args}) ->
-    Pid ! {self(), Command, Args},
-
-    receive
-        {ok, Result} ->
-            case Result of
-                none ->
-                    ok;
-                _ ->
-                    {ok, Result}
-            end;
-        error ->
-            error;
-        Msg ->
-            io:format("Received unexpected response ~w~n", [Msg]),
-            error
-    after
-        100 ->
-            timeout
-    end.
+    {ok, Pid} = gen_server:start_link(?MODULE, [], []),
+    Pid.
 
 stop(Pid) ->
     io:format("Calling stop for dealer ~w~n", [Pid]),
-    send({Pid, die}).
+    gen_server:call(Pid, terminate).
 
 new_game(Pid, Deck, Players) ->
-    send({Pid, new_game, [Deck, Players]}).
+    gen_server:call(Pid, {new_game, Deck, Players}).
 
-dealer() ->
+%% Dealer Server Implementation
+
+init(_Args) ->
     io:format("Dealer alive ~w~n", [self()]),
+    {ok, #state{}}.
 
-    loop(#state{}).
+handle_call(terminate, _From, State) ->
+    {stop, normal, ok, State};
 
-loop(_State) ->
-    receive
-        {From, die, _} ->
-            io:format("Dealer ~w dying~n", [self()]),
-            From ! {ok, none};
-        {From, new_game, [Deck, Players]} ->
-            io:format("Starting new game with deck ~w and Players ~w~n",
-                      [Deck, Players]),
-            From ! {ok, none},
-            lists:foreach(fun(P) -> player:deal_card(P, deck:draw(Deck)) end, Players),
-            Hand = [deck:draw(Deck)],
-            lists:foreach(fun(P) -> player:deal_card(P, deck:draw(Deck)) end, Players),
+handle_call({new_game, Deck, Players}, From, _State) ->
+    io:format("Starting new game with deck ~w and Players ~w~n",
+              [Deck, Players]),
+    gen_server:reply(From, ok),
+    lists:foreach(fun(P) -> player:deal_card(P, deck:draw(Deck)) end, Players),
+    Hand = [deck:draw(Deck)],
+    lists:foreach(fun(P) -> player:deal_card(P, deck:draw(Deck)) end, Players),
 
-            io:format("Ask players ~w for actions~n", [Players]),
-            ask_for_action(Players, Deck),
+    io:format("Ask players ~w for actions~n", [Players]),
+    ask_for_action(Players, Deck),
 
-            FinalHand = draw_cards(Deck, Hand),
+    FinalHand = draw_cards(Deck, Hand),
 
-            loop(#state{deck = Deck, players = Players, hand = FinalHand});
-        Msg ->
-            io:format("Unexpected message ~w~n", [Msg]),
-            element(1, Msg) ! error
-    end.
+    {noreply, #state{deck=Deck, players=Players, hand=FinalHand}}.
+
+terminate(Reason, _State) ->
+    io:format("Dealer ~w dying, Reason ~w~n", [self(), Reason]),
+    ok.
+
+handle_cast(Request, State) ->
+    io:format("Unexpected cast Request: ~p~n",[Request]),
+    {noreply, State}.
+
+handle_info(Msg, _State) ->
+    io:format("Unexpected message: ~p~n",[Msg]),
+    {noreply, Msg}.
+
+code_change(_OldVsn, State, _Extra) ->
+    %% No change planned. The function is there for the behaviour
+    {ok, State}.
+
+%% Util. functions
 
 ask_for_action([], _Deck) ->
     ok;
