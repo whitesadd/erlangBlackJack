@@ -16,14 +16,14 @@
 
 %% Directories to include in cover.
 %% Dirs = [string()]
-%% {incl_dirs, Dirs}.
+{incl_dirs, ["ebin"]}.
 
 %% Directories, including subdirectories, to include.
-{incl_dirs_r, ["src"]}.
+%% {incl_dirs_r, ["src"]}.
 
 %% Specific modules to include in cover.
 %% Mods = [atom()]
-{incl_mods, [deck, blackjack, player, dealer]}.
+%% {incl_mods, [deck, blackjack, player]}.
 
 %% Directories to exclude in cover.
 %% {excl_dirs, Dirs}.
