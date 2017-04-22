@@ -84,11 +84,11 @@ loop(Deck) ->
 
 generate_deck() ->
     Deck = lists:flatten(
-             lists:duplicate(?NUM_DECKS, [{X, Y} ||
+             lists:duplicate(?NUM_DECKS, [#card{value=X, suite=Y} ||
                                           X <- lists:seq(2, 14),
                                           Y <- [club, heart, diamond, spade]])),
     %% Add black shuffle deck card and shuffle the deck
-    shuffle_deck([{0, black} | Deck]).
+    shuffle_deck([#card{value=0, suite=black} | Deck]).
 
 shuffle_deck(Deck) ->
     Random = lists:sort(
